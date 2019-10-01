@@ -1,0 +1,23 @@
+{
+  "name": "intellij-backup",
+  "version": "1.0.0",
+  "description": "back up intellij config dirs",
+  "main": "index.js",
+  "dependencies": {
+    "fs-extra": "8.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/athill/intellij-backup.git"
+  },
+  "author": "athill <athill@iu.edu>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/athill/intellij-backup/issues"
+  },
+  "homepage": "https://github.com/athill/intellij-backup#readme"
+}
