@@ -24,7 +24,7 @@ if (!existsSync(backupdir)) {
 
 process.chdir(coderoot);
 
-const paths = execSync('find . -not -path "*node_modules*"  -name ".idea"', { encoding: 'utf-8' }).split('\n');
+const paths = execSync('find . -not -path "*node_modules*"  -name ".idea" -or -name "*.env"', { encoding: 'utf-8' }).split('\n');
 
 paths.forEach(path => {
   const backuppath = join(backupdir, path);
