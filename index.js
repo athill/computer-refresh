@@ -1,10 +1,11 @@
 const { execSync } = require('child_process');
 const { copy, existsSync, mkdirSync } = require('fs-extra');
 const { dirname, join } = require('path');
+const mkdirp = require('mkdirp');
 
 const usage='intellij-backup <code-root> <backup-dir>';
 
-const mkdir = path => mkdirSync(path, { recursive: true });
+const mkdir = path => existsSync(path) || mkdirp.sync(path);
 
 if (process.argv.length !== 4) {
   console.log(usage);
@@ -29,9 +30,11 @@ const paths = execSync('find . -not -path "*node_modules*"  -name ".idea" -or -n
 paths.forEach(path => {
   const backuppath = join(backupdir, path);
   const parent = dirname(backuppath);
+  console.log(parent);
   mkdir(parent);
-  // console.log(path, parent);
-  copy(path, backuppath);
+  if (path) {
+    copy(path, backuppath);
+  }
 }); 
 
 
