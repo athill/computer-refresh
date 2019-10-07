@@ -4,7 +4,8 @@
   "description": "back up intellij config dirs",
   "main": "index.js",
   "dependencies": {
-    "fs-extra": "8.1.0"
+    "fs-extra": "8.1.0",
+    "mkdirp": "^0.5.1"
   },
   "devDependencies": {},
   "scripts": {
