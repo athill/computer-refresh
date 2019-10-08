@@ -18,7 +18,7 @@ common:
     - from: /Library/Java/JavaVirtualMachines
       to: jdk
 secure:
-  destination: ~/secure-code-refresh
+  destination: ~/secure-computer-refresh
   coderoot: ~/Code
   mappings:
     - from: ~/.m2
