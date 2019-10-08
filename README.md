@@ -1,37 +1,41 @@
-# intellij-backup
+# computer-refresh
 
-Simple command line tool to back up IntelliJ configs
+Backs up files and directories based on configuration.
 
-## Usage
+Reads a configuration file and backs up files and directories to specified locations. By default it looks for a `config.yml` file in the current directory, but can take a config file location as an argument.
+
+Some example configuration will probably help
+
 ```
-node . <code-root> <backup-dir>
+common:
+  destination: ~/cloud-provider/computer-refresh
+  mappings:
+    - from: ~
+      to: home
+      files:
+        - .git-completion.bash 
+        // ...
+    - from: /Library/Java/JavaVirtualMachines
+      to: jdk
+secure:
+  destination: ~/secure-code-refresh
+  coderoot: ~/Code
+  mappings:
+    - from: ~/.m2
+      to: home/.m2
+      pattern: '*.xml'
+    // ...
 ```
 
-Where `code-root` is the root of where your IntelliJ projects are stored and `backup-dir` is the directory you would like to back them up to (will be created if it does not exist).
+In this example, I'm backing up secure files to my desktop and non-secure (common) files to a cloud provider. The top-level labels are arbitrary. Each label has at least `destination` and `mappings` keys. 
 
-For example, `node . ~/Code ~/intellij-backup` will recursively find all `.idea` directories in `~/Code` and copy them with their parent directory structure to `~/intellij-backup`.
+`destination` is the root directory to back up files (will be created if it does not exist).
 
-For example, if `~/Code` looks like:
-```
-├── project-a
-│   ├── .idea
-│   └── foo.js
-├── project-b
-│   ├── .idea
-│   └── foo.js
-└── subdir
-    └── project-c
-        ├── .idea
-        └── foo.js
-```
+`mappings` works as follows:
 
-`~/intellij-backup` will look like:
-```
-├── project-a
-│   └── .idea
-├── project-b
-│   └── .idea
-└── subdir
-    └── project-c
-        └── .idea
-```        
+1. If there is only a `from` and a `to` entry, it will `cp -rf $from/* $destination/$to`. Not that it does not copy the directory itself, but copies into the `to` directory. The `to` directory structure will be created if it does not exist.
+2. If there is a `pattern` argument, it will be appended to the copy source in place of the asterisk `cp -rf $from/*.xml $destination/$to`, for example.
+3. If there is a `files` key, it will recursively copy each entry. If there is a nested entry (e.g., `foo/bar`), the `bar` directory will be ensured to exist before copying `bar`. 
+
+
+TODO: coderoot (app config)

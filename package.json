@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "fs-extra": "8.1.0",
+    "js-yaml": "3.13.1",
     "mkdirp": "^0.5.1"
   },
   "devDependencies": {},
