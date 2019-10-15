@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 const { existsSync, readFileSync, readdirSync, writeFileSync } = require('fs-extra');
 const { join } = require('path');
 const yaml = require('js-yaml');
-const copy = require('recursive-copy');
+// const copy = require('recursive-copy');
 
 const { copyFilesWithStructure, fixPath, mkdir } = require('./utils');
 
@@ -28,7 +28,8 @@ const handleBackupMapping = async (mapping, destination) => {
     console.log(`copy filter to ${to}`);
     try {
       console.log({ from, to });
-      await copy(from, to, { dot: true, filter: mapping.filter });  
+      execSync(`cp -rf ${from}/${mapping.filter} ${to}`);
+      // await copy(from, to, { dot: true, filter: mapping.filter });  
     } catch (error) {
       console.log('error: filed to copy filtered files', {from, to}, error);
       process.exit(1);
@@ -39,7 +40,7 @@ const handleBackupMapping = async (mapping, destination) => {
   if (copyAll) {
     console.log(`copy all to ${to}`);
     try {
-      await copy(from, to, { dot: true });  
+      execSync(`cp -rf ${from} ${to}`); 
     } catch (error) {
       console.log('error: failed to copy all files', {from, to}, error);
       process.exit(1);
