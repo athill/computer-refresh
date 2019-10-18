@@ -65,11 +65,11 @@ const backupToDestination = async config => {
     backupListings(config.listings, destination);
   }
   // process.exit(1);
-  // if (config.mappings) {
-  //   config.mappings.forEach(async mapping => {
-  //     handleBackupMapping(mapping, destination);
-  //   });
-  // }  
+  if (config.mappings) {
+    config.mappings.forEach(async mapping => {
+      handleBackupMapping(mapping, destination);
+    });
+  }  
 };
 
 
@@ -118,7 +118,7 @@ main(config);
 
 // process.chdir(coderoot);
 
-// const paths = execSync('find . -type d -name node_modules -prune -o -name ".idea" -o -type f -name "*\.env""', { encoding: 'utf-8' }).split('\n');
+// const paths = execSync('find . -type d -name node_modules -prune -not -name  node_modules -o -type d -name target -prune -not -name target  -o -name .idea -o -name "*.env"', { encoding: 'utf-8' }).split('\n');
 
 
 // copyFilesWithStructure(paths, backupdir);

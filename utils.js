@@ -1,4 +1,5 @@
-const { copy, existsSync, mkdirSync } = require('fs-extra');
+const { execSync } = require('child_process');
+const { copy, existsSync, lstatSync, mkdirSync } = require('fs-extra');
 const { dirname, join } = require('path');
 const mkdirp = require('mkdirp');
 
@@ -23,9 +24,23 @@ const copyFilesWithStructure = async (from, to, paths) => {
     }
     
     if (path) {
-      console.log('copying file in structure', { path, backuppath });
-      await copy(path, backuppath);
-      console.log(`Failed to copy ${path} to ${backuppath}`, error);
+      const isLink = lstatSync(path).isSymbolicLink();
+      console.log('copying file in structure', { path, backuppath, from, isLink });
+      try {
+        if (!isLink || !existsSync(backuppath)) {
+          if (isLink) {
+            execSync(`cp -Lf ${path} ${backuppath}`);              
+          } else {
+            execSync(`cp -rf ${path} ${backuppath}`);  
+          }
+
+        }
+      } catch (error) {
+        console.log(`Failed to copy ${path} to ${backuppath}`, error);
+        process.exit(1);
+      }
+      
+
     }
   });   
 };
