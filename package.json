@@ -1,13 +1,14 @@
 {
-  "name": "intellij-backup",
-  "version": "1.0.0",
-  "description": "back up intellij config dirs",
+  "name": "@athill/computer-refresh",
+  "version": "0.0.1",
+  "description": "back up your computer files via configuration",
   "main": "index.js",
   "dependencies": {
     "fs-extra": "8.1.0",
+    "is-glob": "4.0.1",
     "js-yaml": "3.13.1",
-    "mkdirp": "^0.5.1",
-    "recursive-copy": "2.0.10"
+    "log4js": "5.2.2",
+    "mkdirp": "^0.5.1"
   },
   "devDependencies": {},
   "scripts": {
@@ -15,12 +16,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/athill/intellij-backup.git"
+    "url": "git+https://github.com/athill/computer-refresh.git"
   },
   "author": "athill <athill@iu.edu>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/athill/intellij-backup/issues"
+    "url": "https://github.com/athill/computer-refresh/issues"
   },
-  "homepage": "https://github.com/athill/intellij-backup#readme"
+  "homepage": "https://github.com/athill/computer-refresh#readme"
 }
