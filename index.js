@@ -11,18 +11,20 @@ const main = async (config) => {
   }
 };
 
-if (process.argv.length < 3) {
-  logger.error('Configuration file is a required argument.');
-  process.exit(1);
-}
 
-const configfile = process.argv[2]
+module.exports = main;
+// if (process.argv.length < 3) {
+//   logger.error('Configuration file is a required argument.');
+//   process.exit(1);
+// }
 
-let config;
-try {
-  config = yaml.safeLoad(readFileSync(configfile, 'utf8'));
-} catch (e) {
-  logger.error('Cannot load config file', e);
-  process.exit(1);
-}
-main(config);
+// const configfile = process.argv[2]
+
+// let config;
+// try {
+//   config = yaml.safeLoad(readFileSync(configfile, 'utf8'));
+// } catch (e) {
+//   logger.error('Cannot load config file', e);
+//   process.exit(1);
+// }
+// main(config);
