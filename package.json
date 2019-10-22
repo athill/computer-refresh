@@ -1,8 +1,9 @@
 {
-  "name": "@athill/computer-refresh",
+  "name": "computer-refresh",
   "version": "0.0.1",
   "description": "back up your computer files via configuration",
   "main": "index.js",
+  "module": "inddx.js",
   "dependencies": {
     "fs-extra": "8.1.0",
     "is-glob": "4.0.1",
