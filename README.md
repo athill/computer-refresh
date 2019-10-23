@@ -4,7 +4,7 @@
 
 `computer-refresh` is a JavaScript library to automate and document backing up and restoring your files from one computer to another.
 
-- *Decarative Configuration*: The backups are defined in a `YAML` configuration file that documents the files you are backing up.
+- *Decarative Configuration*: The backups are defined in a `yaml` configuration file that documents the files you are backing up.
 - *Deep Copies*: The directory structure of the source files is copied so common file names do not clobber each other and context is not lost.
 - *Flexible*: Succinct syntax to copy virtually anything to anywhere.
 
