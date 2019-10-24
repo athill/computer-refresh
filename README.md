@@ -43,6 +43,9 @@ Some example configuration will probably help
 ```
 common:
   destination: ~/cloud-provider/computer-refresh
+  listings:
+    applications: /Applications
+    code: ~/Code  
   mappings:
     - from: ~
       to: home
@@ -74,6 +77,8 @@ secure:
 In this example, I'm backing up secure files to my desktop and non-secure (common) files to a cloud provider. The top-level labels are arbitrary. Each label has at least `destination` and `mappings` keys. 
 
 `destination` is the root directory to back up files (will be created if it does not exist).
+
+`listings` dumps a top-level directory list into `<label>.txt`, so in the example, `applications.txt` would contain a listing of the `/Applications` directory. 
 
 `mappings` works as follows:
 
