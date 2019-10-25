@@ -1,5 +1,5 @@
 const { execSync } = require('child_process');
-const { existsSync, lstatSync, mkdirSync } = require('fs-extra');
+const { existsSync, lstatSync, mkdirSync } = require('fs');
 const { basename, dirname, join } = require('path');
 const mkdirp = require('mkdirp');
 const isGlob = require('is-glob');
@@ -27,8 +27,15 @@ const fixPath = path => path.replace('~', homedir);
 /**
  * Copies a list of paths from one directory to another, retaining relevant the directory structure
  */
-const copyFilesWithStructure = async (from, to, paths) => {
-  await process.chdir(from);
+const copyFilesWithStructure = (from, to, paths) => {
+  logger.trace(`Starting directory: ${process.cwd()}`);
+  try {
+    process.chdir(from);
+    logger.trace(`New directory: ${process.cwd()}`);
+  } catch (err) {
+    logger.error(`chdir: ${err}`);
+    exit(1);
+  }
   paths.forEach(async path => {
     const backuppath = join(to, path);
     const parent = dirname(backuppath);
@@ -40,12 +47,15 @@ const copyFilesWithStructure = async (from, to, paths) => {
     }
     
     if (path) {
+      logger.info(`Copying from ${path} to ${backuppath}`, process.cwd(), { from });
       const stats = lstatSync(path);
       const isLink = stats.isSymbolicLink();
+      
       try {
         // If it's a link, only copy if it doesn't already exist in the destination due to issues overwriting an existing link
         // Otherwise, copy it.
         // TODO: Handle case where link has updated
+
         if (!isLink || !existsSync(backuppath)) {
           if (isLink) {
             execSync(`cp -Lf "${path}" "${backuppath}"`);     

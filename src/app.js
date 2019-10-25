@@ -5,7 +5,7 @@ const { join } = require('path');
 const logger = require('./logger');
 const { copyFilesWithStructure, fixPath, mkdir, quotePath } = require('./utils');
 
-const handleBackupMapping = async (mapping, destination) => {
+const handleBackupMapping = (mapping, destination) => {
   const from = fixPath(mapping.from);
   const to = join(destination, mapping.to);
   let copyAll = true;
@@ -13,7 +13,7 @@ const handleBackupMapping = async (mapping, destination) => {
     copyAll = false;
     logger.info(`copy files`, { from , to });
     try {
-      await copyFilesWithStructure(from, to, mapping.files);  
+      copyFilesWithStructure(from, to, mapping.files);  
     } catch (error) {
       logger.error('Failed to copy files', {from, to, files: mapping.files}, error);
       process.exit(1);
@@ -67,13 +67,18 @@ const buildFindCommand = config => {
   return findCommand;
 };
 
-const backupAppConfig = async (config, destination) => {
+const backupAppConfig = (config, destination) => {
   const from = fixPath(config.from);
-  await process.chdir(from);
+  try {
+    process.chdir(from);  
+  } catch (error) {
+    logger.error(`Could not change directory`);
+  }
   const to = join(destination, config.to);
   const findCommand = buildFindCommand(config);
+  logger.trace(`Find command is: ${findCommand}`);
   const paths = execSync(findCommand, { encoding: 'utf-8' }).split('\n');
-  await copyFilesWithStructure(from, to, paths);
+  copyFilesWithStructure(from, to, paths);
 };
 
 const backupListings = async (listings, destination) => {
