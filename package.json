@@ -3,24 +3,52 @@
   "version": "0.0.5",
   "description": "Back up your computer files via configuration",
   "main": "index.js",
+  "bin": {
+    "computer-refresh": "./bin/run"
+  },
   "dependencies": {
     "is-glob": "4.0.1",
     "js-yaml": "3.13.1",
     "log4js": "5.2.2",
-    "mkdirp": "^0.5.1"
+    "mkdirp": "0.5.1",
+    "@oclif/command": "1.5.19",
+    "@oclif/config": "1.13.3",
+    "@oclif/plugin-help": "2.2.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@oclif/dev-cli": "^1.22.2",
+    "eslint": "^5.16.0",
+    "eslint-config-oclif": "^3.1.0",
+    "globby": "^10.0.1"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postpack": "rm -f oclif.manifest.json",
+    "posttest": "eslint .",
+    "prepack": "oclif-dev manifest && oclif-dev readme",
+    "test": "echo NO TESTS",
+    "version": "oclif-dev readme && git add README.md"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/athill/computer-refresh.git"
-  },
+  "repository": "athill/",
   "author": "athill <athill@iu.edu>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/athill/computer-refresh/issues"
   },
-  "homepage": "https://github.com/athill/computer-refresh#readme"
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json",
+    "/src"
+  ],
+  "homepage": "https://github.com/athill/computer-refresh#readme",
+  "oclif": {
+    "commands": "./src/commands",
+    "bin": "computer-refresh",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  }
 }
