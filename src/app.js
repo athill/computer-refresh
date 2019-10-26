@@ -5,9 +5,7 @@ const { join } = require('path');
 const logger = require('./logger');
 const { copyFilesWithStructure, fixPath, mkdir, quotePath } = require('./utils');
 
-const handleBackupMapping = (mapping, destination) => {
-  const from = fixPath(mapping.from);
-  const to = join(destination, mapping.to);
+const handleBackupMapping = (mapping, from, to) => {
   let copyAll = true;
   if ('files' in mapping) {
     copyAll = false;
@@ -61,8 +59,8 @@ const buildFindCommand = config => {
     if (excludeDirectories.length || includeDirectories.length) {
       findCommand += ' -o';
     }
-      const includeFiles = config.files.include.map(include => ` -type f -name ${include}`);
-      findCommand += includeFiles.join(' -o');    
+    const includeFiles = config.files.include.map(include => ` -type f -name ${include}`);
+    findCommand += includeFiles.join(' -o');    
   }
   return findCommand;
 };
@@ -90,7 +88,7 @@ const backupListings = async (listings, destination) => {
 };
 
 
-const backupToDestination = async config => {
+const backup = async config => {
   const destination = fixPath(config.destination);
   if ('app-config' in config) {
     backupAppConfig(config['app-config'], destination);
@@ -100,11 +98,24 @@ const backupToDestination = async config => {
   }
   if (config.mappings) {
     config.mappings.forEach(async mapping => {
-      handleBackupMapping(mapping, destination);
+      const from = fixPath(mapping.from);
+      const to = join(destination, mapping.to);      
+      handleBackupMapping(mapping, from, to);
     });
   }  
 };
 
+const restore = async config => {
+  if (config.mappings) {
+    const to = fixPath(mapping.from);
+    const from = join(destination, mapping.to);
+    config.mappings.forEach(async mapping => {
+      handleBackupMapping(mapping, from, to);
+    });
+  }
+};
+
 module.exports = {
-  backupToDestination
+  backup,
+  restore
 };
