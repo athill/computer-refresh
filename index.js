@@ -7,8 +7,13 @@ const logger = require('./src/logger');
 const main = async (config) => {
   for (let label in config) {
     logger.info('***' + label + '***');    
-    await app.backup(config[label]);
+    await backup(config[label]);
   }
 };
 
-module.exports = main;
+const cli = () => require('./bin/run');
+
+module.exports = {
+	cli,
+	main
+};

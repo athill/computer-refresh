@@ -1,38 +1,44 @@
+const chalk = require('chalk');
 const { execSync } = require('child_process');
 const { existsSync, readdirSync, writeFileSync } = require('fs');
+const emoji = require('node-emoji');
 const { join } = require('path');
 
 const logger = require('./logger');
-const { copyFilesWithStructure, fixPath, mkdir, quotePath } = require('./utils');
+const { chdir, copyFilesWithStructure, fixPath, mkdir, quotePath } = require('./utils');
+
+const output = text => console.log(chalk.cyan(text));
 
 const handleBackupMapping = (mapping, from, to) => {
   let copyAll = true;
   if ('files' in mapping) {
     copyAll = false;
-    logger.info(`copy files`, { from , to });
+    logger.info(`Processing mappings files from ${from} to ${to}`);
     try {
       copyFilesWithStructure(from, to, mapping.files);  
     } catch (error) {
-      logger.error('Failed to copy files', {from, to, files: mapping.files}, error);
+      logger.error(`Failed to copy listed files from ${from} to ${to}`, { files: mapping.files, error });
       process.exit(1);
     }
     
   }
   if ('filter' in mapping) {
     copyAll = false;
+    logger.info(`Processing mappings filter from ${from} to ${to}`);
     try {
       execSync(`cp -rf ${quotePath(join(from, mapping.filter))} "${to}"`);
     } catch (error) {
-      logger.error('Failed to copy filtered files', {from, to}, error);
+      logger.error(`Failed to copy filtered files from ${from} to ${to}`, { error });
       process.exit(1);
     }
   }
   // if no pattern or file list, copy all contents
   if (copyAll) {
+    logger.info(`Processing mappings all from ${from} to ${to}`);
     try {
       execSync(`cp -rf ${quotePath(join(from, '*'))} "${to}"`); 
     } catch (error) {
-      logger.error('Failed to copy all files', {from, to}, error);
+      logger.error(`Failed to copy all files from ${from} to ${to}`, { error });
       process.exit(1);
     }
   }
@@ -66,38 +72,42 @@ const buildFindCommand = config => {
 };
 
 const backupAppConfig = (config, destination) => {
-  const from = fixPath(config.from);
-  try {
-    process.chdir(from);  
-  } catch (error) {
-    logger.error(`Could not change directory`);
-  }
+  chdir(from);
   const to = join(destination, config.to);
   const findCommand = buildFindCommand(config);
   logger.trace(`Find command is: ${findCommand}`);
   const paths = execSync(findCommand, { encoding: 'utf-8' }).split('\n');
+  logger.trace(`Paths are ${paths}`);
   copyFilesWithStructure(from, to, paths);
 };
 
 const backupListings = async (listings, destination) => {
-  logger.debug('back up listing', {listings, destination});
+  logger.info('Write out listings', {listings, destination});
   Object.keys(listings).forEach(label => {
-    const listing = readdirSync(fixPath(listings[label]));
+    const directory = listings[label];
+    logger.trace(`Writing listing of ${directory} to ${label}.txt`);
+    const listing = readdirSync(fixPath(directory));
     writeFileSync(join(destination, `${label}.txt`), listing.join('\n')); 
   })
 };
 
 
-const backup = async config => {
+const backup = async (config, options) => {
+  if (options.verbose) {
+    logger.level = 'trace';
+  }
   const destination = fixPath(config.destination);
-  if ('app-config' in config) {
+  if ('app-config' in config && (options.appConfig || options.all)) {
+    output('Processing app-config');
     backupAppConfig(config['app-config'], destination);
   }
-  if (config.listings) {
+  if (config.listings && (options.listings || options.all)) {
+    output('Processing listings');
     backupListings(config.listings, destination);
   }
-  if (config.mappings) {
+  if (config.mappings && options.mappings || options.all) {
     config.mappings.forEach(async mapping => {
+      output('Processing mappings');
       const from = fixPath(mapping.from);
       const to = join(destination, mapping.to);      
       handleBackupMapping(mapping, from, to);
@@ -105,7 +115,11 @@ const backup = async config => {
   }  
 };
 
-const restore = async config => {
+const restore = async (config, options) => {
+  if (options.verbose) {
+    logger.level = 'trace';
+  }  
+  output('Processing mappings');
   if (config.mappings) {
     const to = fixPath(mapping.from);
     const from = join(destination, mapping.to);

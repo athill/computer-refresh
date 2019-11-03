@@ -1,3 +1,4 @@
+/* Deprecated */
 const { readFileSync } = require('fs');
 const yaml = require('js-yaml');
 

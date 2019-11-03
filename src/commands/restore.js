@@ -1,11 +1,20 @@
-const {Command, flags} = require('@oclif/command')
+const {Command, flags} = require('@oclif/command');
+
+const { restore } = require('../app');
+const { loadYaml } = require('../utils');
 
 class RestoreCommand extends Command {
   async run() {
-    const {args, flags} = this.parse(RestoreCommand);
-    this.log({ args });
-    // const name = flags.name || 'world'
-    // this.log(`hello ${name} from ./src/commands/restore.js`)
+    const { 
+    	args: { configfile }, 
+    	flags: { verbose } 
+    } = this.parse(RestoreCommand);
+    
+    const options = {
+    	verbose
+    };
+	const config = loadYaml(configfile);
+	restore(config, options);
   }
 }
 
@@ -14,9 +23,9 @@ RestoreCommand.description = `Restores files to a fresh install
 Only restores files from the mappings configuration key
 `
 
-// RestoreCommand.flags = {
-//   name: flags.string({char: 'n', description: 'name to print'}),
-// };
+RestoreCommand.flags = {
+  verbose: flags.boolean({ default: false, char: 'v' })
+};
 
 RestoreCommand.args = [
 	{

@@ -3,6 +3,8 @@ const { existsSync, lstatSync, mkdirSync } = require('fs');
 const { basename, dirname, join } = require('path');
 const mkdirp = require('mkdirp');
 const isGlob = require('is-glob');
+const { readFileSync } = require('fs');
+const yaml = require('js-yaml');
 
 const logger = require('./logger');
 
@@ -24,18 +26,23 @@ const quotePath = path => isGlob(basename(path)) ? join(`"${dirname(path)}"`, ba
  */
 const fixPath = path => path.replace('~', homedir);
 
-/**
- * Copies a list of paths from one directory to another, retaining relevant the directory structure
- */
-const copyFilesWithStructure = (from, to, paths) => {
-  logger.trace(`Starting directory: ${process.cwd()}`);
+
+const chdir = directory => {
   try {
-    process.chdir(from);
+    process.chdir(directory);
     logger.trace(`New directory: ${process.cwd()}`);
   } catch (err) {
     logger.error(`chdir: ${err}`);
     exit(1);
   }
+};
+
+/**
+ * Copies a list of paths from one directory to another, retaining relevant the directory structure
+ */
+const copyFilesWithStructure = (from, to, paths) => {
+  logger.trace(`Starting directory: ${process.cwd()}`);
+
   paths.forEach(async path => {
     const backuppath = join(to, path);
     const parent = dirname(backuppath);
@@ -73,8 +80,20 @@ const copyFilesWithStructure = (from, to, paths) => {
   });   
 };
 
+const loadYaml = yamlFile => {
+  let object;
+  try {
+    object = yaml.safeLoad(readFileSync(yamlFile, 'utf8'));
+  } catch (e) {
+    logger.error('Cannot load config file', e);
+    process.exit(1);
+  }
+  return object;
+}
+
 module.exports = {
   fixPath,
+  loadYaml,
   mkdir,
   quotePath,
   copyFilesWithStructure
