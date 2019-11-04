@@ -26,7 +26,9 @@ const quotePath = path => isGlob(basename(path)) ? join(`"${dirname(path)}"`, ba
  */
 const fixPath = path => path.replace('~', homedir);
 
-
+/**
+ * Wrapper arount process.chdir to handle errors and logging
+ */
 const chdir = directory => {
   try {
     process.chdir(directory);
@@ -44,42 +46,37 @@ const copyFilesWithStructure = (from, to, paths) => {
   logger.trace(`Starting directory: ${process.cwd()}`);
 
   paths.forEach(async path => {
-    const backuppath = join(to, path);
-    const parent = dirname(backuppath);
-    try {
-      mkdir(parent);  
-    } catch (error) {
-      logger.error(`Could not create directory ${parent}`, error);
-      process.exit(1);
-    }
+    let toPath = join(to, path);
+    const parent = dirname(toPath);
     
     if (path) {
-      logger.info(`Copying from ${path} to ${backuppath}`, process.cwd(), { from });
-      const stats = lstatSync(path);
+      const fromPath = join(from, path);
+      logger.info(`Copying from ${fromPath} to ${toPath}`, process.cwd(), { from });
+      const stats = lstatSync(fromPath);
       const isLink = stats.isSymbolicLink();
-      
       try {
         // If it's a link, only copy if it doesn't already exist in the destination due to issues overwriting an existing link
         // Otherwise, copy it.
         // TODO: Handle case where link has updated
-
-        if (!isLink || !existsSync(backuppath)) {
+        if (!isLink || !existsSync(toPath)) {
           if (isLink) {
-            execSync(`cp -Lf "${path}" "${backuppath}"`);     
-          } else if (stats.isDirectory()) {
-            execSync(`cp -rf "${path}" "${backuppath}"`);
-          } else {
-            execSync(`cp -f ${quotePath(path)} "${backuppath}"`);
+            execSync(`cp -Lf "${fromPath}" "${toPath}"`);     
+          } else  {
+            mkdirp.sync(dirname(toPath));
+            execSync(`cp -rf ${quotePath(fromPath)} "${toPath}"`);
           }
         }
       } catch (error) {
-        logger.error(`Failed to copy ${path} to ${backuppath}`, error);
+        logger.error(`Failed to copy ${fromPath} to ${toPath}`, error);
         process.exit(1);
       }
     }
   });   
 };
 
+/**
+ * Wrapper around yaml.safeLoad to handle logging and errors and reading the file
+ */
 const loadYaml = yamlFile => {
   let object;
   try {
