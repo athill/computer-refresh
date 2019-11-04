@@ -129,13 +129,13 @@ const restore = async (config, options) => {
   for (let label in config) {
     output(`** Restoring [${label}]`);
     output('Restoring mappings');
-    if (config[label].mappings) {
-      config[label].mappings.forEach(async mapping => {
+    const conf = config[label];
+    const destination = fixPath(conf.destination);
+    if (conf.mappings) {
+      conf.mappings.forEach(async mapping => {
         const to = fixPath(mapping.from);
         const from = join(destination, mapping.to);
-        config.mappings.forEach(async mapping => {
-          handleBackupMapping(mapping, from, to);
-        });
+        handleBackupMapping(mapping, from, to);
       });
     }    
   }
