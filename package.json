@@ -30,7 +30,7 @@
     "test": "jest --watch",
     "version": "oclif-dev readme && git add README.md"
   },
-  "repository": "athill/",
+  "repository": "https://github.com/athill/computer-refresh/",
   "author": "athill <athill@iu.edu>",
   "license": "ISC",
   "bugs": {
