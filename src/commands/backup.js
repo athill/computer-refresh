@@ -12,7 +12,7 @@ class BackupCommand extends Command {
     } = this.parse(BackupCommand);
     
     const options = {
-    	all: appConfig === mappings === verbose,
+    	all: appConfig === mappings && appConfig === listings,
     	appConfig,
     	listings,
     	mappings,

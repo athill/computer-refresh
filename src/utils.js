@@ -35,7 +35,7 @@ const chdir = directory => {
     logger.trace(`New directory: ${process.cwd()}`);
   } catch (err) {
     logger.error(`chdir: ${err}`);
-    exit(1);
+    process.exit(1);
   }
 };
 
@@ -89,6 +89,7 @@ const loadYaml = yamlFile => {
 }
 
 module.exports = {
+  chdir,
   fixPath,
   loadYaml,
   mkdir,

@@ -1,7 +1,6 @@
 const chalk = require('chalk');
 const { execSync } = require('child_process');
 const { existsSync, readdirSync, writeFileSync } = require('fs');
-const emoji = require('node-emoji');
 const { join } = require('path');
 
 const logger = require('./logger');
@@ -72,6 +71,7 @@ const buildFindCommand = config => {
 };
 
 const backupAppConfig = (config, destination) => {
+  const from = fixPath(config.from);
   chdir(from);
   const to = join(destination, config.to);
   const findCommand = buildFindCommand(config);
@@ -91,11 +91,7 @@ const backupListings = async (listings, destination) => {
   })
 };
 
-
-const backup = async (config, options) => {
-  if (options.verbose) {
-    logger.level = 'trace';
-  }
+const backupLabel = (config, options) => {
   const destination = fixPath(config.destination);
   if ('app-config' in config && (options.appConfig || options.all)) {
     output('Processing app-config');
@@ -106,26 +102,42 @@ const backup = async (config, options) => {
     backupListings(config.listings, destination);
   }
   if (config.mappings && options.mappings || options.all) {
+    output('Processing mappings');
     config.mappings.forEach(async mapping => {
-      output('Processing mappings');
       const from = fixPath(mapping.from);
-      const to = join(destination, mapping.to);      
+      const to = join(destination, mapping.to);     
       handleBackupMapping(mapping, from, to);
     });
-  }  
+  }   
+};
+
+
+const backup = async (config, options) => {
+  if (options.verbose) {
+    logger.level = 'trace';
+  }
+  for (let label in config) {
+    output(`** Backing up [${label}]`);
+    backupLabel(config[label], options);
+  }
 };
 
 const restore = async (config, options) => {
   if (options.verbose) {
     logger.level = 'trace';
   }  
-  output('Processing mappings');
-  if (config.mappings) {
-    const to = fixPath(mapping.from);
-    const from = join(destination, mapping.to);
-    config.mappings.forEach(async mapping => {
-      handleBackupMapping(mapping, from, to);
-    });
+  for (let label in config) {
+    output(`** Restoring [${label}]`);
+    output('Restoring mappings');
+    if (config[label].mappings) {
+      config[label].mappings.forEach(async mapping => {
+        const to = fixPath(mapping.from);
+        const from = join(destination, mapping.to);
+        config.mappings.forEach(async mapping => {
+          handleBackupMapping(mapping, from, to);
+        });
+      });
+    }    
   }
 };
 
