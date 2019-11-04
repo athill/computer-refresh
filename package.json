@@ -1,6 +1,6 @@
 {
   "name": "@athill/computer-refresh",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "Back up your computer files via configuration",
   "main": "index.js",
   "bin": {
@@ -20,7 +20,7 @@
     "@oclif/dev-cli": "^1.22.2",
     "eslint": "^5.16.0",
     "eslint-config-oclif": "^3.1.0",
-    "globby": "^10.0.1",
+    "globby": "10.0.1",
     "jest": "24.9.0",
     "rimraf": "3.0.0"
   },

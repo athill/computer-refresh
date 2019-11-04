@@ -18,23 +18,27 @@ $ npm i -S computer-refresh
 
 The idea is to document that which can be automated when moving from computer to computer, so my intended usage is to create a personal repository (e.g, `laptop-backup`) with this installed where the `README` is composed of sets of instructions for the backup and restore processes that this script doesn't help automate (e.g., install `nodejs` on the target computer). The hope is that between the configuration file and the instructions, my backup/restore process is documented and partially automated.
 
-That said, here the gist of using it:
+To use run it in another program:
 ```
-const backup = require('computer-refresh');
-cont yaml = require('js-yaml');
+const { cli } = require('@athill/computer-refresh');
 
-const configfile = 'config.yml';
 
-let config;
-try {
-  config = yaml.safeLoad(readFileSync(configfile, 'utf8'));
-} catch (error) {
-  console.log(`ERROR: Cannot load config file, ${configfile}`, error);
-  process.exit(1);
-}
-
-backup(config);
+// run computer-refresh
+cli();
 ```
+
+To run from the command line in this project
+```
+$ ./bin/run COMMAND CONFIGFILE
+```
+
+Where COMMAND is either `backup` or `restore` and CONFIGFILE is a YAML file formatted as described below.
+
+Both commands can take a `--verbose|-v` argument to provide more output
+
+`restore` only restores the mappings. The other sections do not make sense for a restore
+
+`backup` can restrict what gets backed up with `--app-config|-a`, `--mappings|-m`, and `--listings|-l` flags. Providing either no or all of these flags will run all sections; otherwise only the sections  indicated by the flags will run.
 
 ## Configuration
 
@@ -92,12 +96,4 @@ In this example, I'm backing up secure files to my desktop and non-secure (commo
 2. `to` - Where to back up the files (`$destination/$to`)
 3. `files` - Only has an `include` key for files to include (e.g., `.env`)
 4. `directories - Has a key for directories to include (e.g., `.idea`) and exclude, meaning not to traverse (e.g., `node_modules`)
-
-## Development
-
-There is a `dev.js` file that runs as a command line runner with one argument: The path to a configuration file.
-
-```
-$ node dev.js /path/to/config.yml
-```
 
