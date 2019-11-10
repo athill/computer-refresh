@@ -111,22 +111,37 @@ const backupLabel = (config, options) => {
   }   
 };
 
+const getLabels = (config, options) => {
+  let labels = Object.keys(config);
+  if (options.labels) {
+    labels = options.labels.split(',');
+    labels.forEach(label => {
+      if (!(label in config)) {
+        logger.error(`Invalid label, "${label}". Valid labels are ${Object.keys(config).join(',')}`);
+        process.exit(1);
+      }
+    });
+  }
+  return labels;
+};
 
 const backup = async (config, options) => {
+  const labels = getLabels(config, options);
   if (options.verbose) {
     logger.level = 'trace';
   }
-  for (let label in config) {
+  labels.forEach(label => {
     output(`** Backing up [${label}]`);
     backupLabel(config[label], options);
-  }
+  });
 };
 
 const restore = async (config, options) => {
+  const labels = getLabels(config, options);
   if (options.verbose) {
     logger.level = 'trace';
   }  
-  for (let label in config) {
+  labels.forEach(label => {
     output(`** Restoring [${label}]`);
     output('Restoring mappings');
     const conf = config[label];
@@ -138,7 +153,7 @@ const restore = async (config, options) => {
         handleBackupMapping(mapping, from, to);
       });
     }    
-  }
+  });
 };
 
 module.exports = {

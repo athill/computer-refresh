@@ -96,4 +96,3 @@ In this example, I'm backing up secure files to my desktop and non-secure (commo
 2. `to` - Where to back up the files (`$destination/$to`)
 3. `files` - Only has an `include` key for files to include (e.g., `.env`)
 4. `directories - Has a key for directories to include (e.g., `.idea`) and exclude, meaning not to traverse (e.g., `node_modules`)
-

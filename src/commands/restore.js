@@ -24,7 +24,8 @@ Only restores files from the mappings configuration key
 `
 
 RestoreCommand.flags = {
-  verbose: flags.boolean({ default: false, char: 'v' })
+  verbose: flags.boolean({ default: false, char: 'v', description: 'Provide verbose output.' }),
+  labels: flags.string({ description: 'Select labels to run. Comma delimited list.' })
 };
 
 RestoreCommand.args = [

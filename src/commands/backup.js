@@ -8,15 +8,16 @@ class BackupCommand extends Command {
   async run() {
     const { 
     	args: { configfile }, 
-    	flags: { 'app-config':  appConfig, listings, mappings, verbose } 
+    	flags: { 'app-config':  appConfig, labels, listings, mappings, verbose } 
     } = this.parse(BackupCommand);
     
     const options = {
     	all: appConfig === mappings && appConfig === listings,
     	appConfig,
+      labels,
     	listings,
     	mappings,
-    	verbose
+    	verbose,
     };
 	const config = loadYaml(configfile);
 	backup(config, options);
@@ -29,10 +30,11 @@ See documentation for more information
 `
 
 BackupCommand.flags = {
-  'app-config': flags.boolean({ default: false, char: 'c' }),
-  mappings: flags.boolean({ default: false, char: 'm' }),
-  listings: flags.boolean({ default: false, char: 'l' }),
-  verbose: flags.boolean({ default: false, char: 'v' })
+  'app-config': flags.boolean({ default: false, char: 'c', description: 'Run the app-config process.' }),
+  mappings: flags.boolean({ default: false, char: 'm', description: 'Run the mappings process.' }),
+  listings: flags.boolean({ default: false, char: 'l', description: 'Run the listings process.' }),
+  verbose: flags.boolean({ default: false, char: 'v', description: 'Provide verbose output.' }),
+  labels: flags.string({ description: 'Select labels to run. Comma delimited list.' })
 };
 
 BackupCommand.args = [
