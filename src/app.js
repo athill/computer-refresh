@@ -14,17 +14,18 @@ const handleBackupMapping = (mapping, from, to) => {
     copyAll = false;
     logger.info(`Processing mappings files from ${from} to ${to}`);
     try {
-      copyFilesWithStructure(from, to, mapping.files);  
+      copyFilesWithStructure(from, to, mapping.files);
     } catch (error) {
       logger.error(`Failed to copy listed files from ${from} to ${to}`, { files: mapping.files, error });
       process.exit(1);
     }
-    
+
   }
   if ('filter' in mapping) {
     copyAll = false;
     logger.info(`Processing mappings filter from ${from} to ${to}`);
     try {
+      execSync(`mkdir -p ${to}`);
       execSync(`cp -rf ${quotePath(join(from, mapping.filter))} "${to}"`);
     } catch (error) {
       logger.error(`Failed to copy filtered files from ${from} to ${to}`, { error });
@@ -35,7 +36,7 @@ const handleBackupMapping = (mapping, from, to) => {
   if (copyAll) {
     logger.info(`Processing mappings all from ${from} to ${to}`);
     try {
-      execSync(`cp -rf ${quotePath(join(from, '*'))} "${to}"`); 
+      execSync(`cp -rf ${quotePath(join(from, '*'))} "${to}"`);
     } catch (error) {
       logger.error(`Failed to copy all files from ${from} to ${to}`, { error });
       process.exit(1);
@@ -65,7 +66,7 @@ const buildFindCommand = config => {
       findCommand += ' -o';
     }
     const includeFiles = config.files.include.map(include => ` -type f -name ${include}`);
-    findCommand += includeFiles.join(' -o');    
+    findCommand += includeFiles.join(' -o');
   }
   return findCommand;
 };
@@ -73,6 +74,8 @@ const buildFindCommand = config => {
 const backupAppConfig = (config, destination) => {
   const from = fixPath(config.from);
   chdir(from);
+  const remotes = execSync('git remote -v');
+  console.log(remotes);
   const to = join(destination, config.to);
   const findCommand = buildFindCommand(config);
   logger.trace(`Find command is: ${findCommand}`);
@@ -87,7 +90,7 @@ const backupListings = async (listings, destination) => {
     const directory = listings[label];
     logger.trace(`Writing listing of ${directory} to ${label}.txt`);
     const listing = readdirSync(fixPath(directory));
-    writeFileSync(join(destination, `${label}.txt`), listing.join('\n')); 
+    writeFileSync(join(destination, `${label}.txt`), listing.join('\n'));
   })
 };
 
@@ -105,10 +108,10 @@ const backupLabel = (config, options) => {
     output('Processing mappings');
     config.mappings.forEach(async mapping => {
       const from = fixPath(mapping.from);
-      const to = join(destination, mapping.to);     
+      const to = join(destination, mapping.to);
       handleBackupMapping(mapping, from, to);
     });
-  }   
+  }
 };
 
 const getLabels = (config, options) => {
@@ -140,7 +143,7 @@ const restore = async (config, options) => {
   const labels = getLabels(config, options);
   if (options.verbose) {
     logger.level = 'trace';
-  }  
+  }
   labels.forEach(label => {
     output(`** Restoring [${label}]`);
     output('Restoring mappings');
@@ -152,7 +155,7 @@ const restore = async (config, options) => {
         const from = join(destination, mapping.to);
         handleBackupMapping(mapping, from, to);
       });
-    }    
+    }
   });
 };
 
