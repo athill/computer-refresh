@@ -32,7 +32,7 @@ const fixPath = path => path.replace('~', homedir);
 const chdir = directory => {
   try {
     process.chdir(directory);
-    logger.trace(`New directory: ${process.cwd()}`);
+    logger.trace(`Changing directory: ${process.cwd()}`);
   } catch (err) {
     logger.error(`chdir: ${err}`);
     process.exit(1);
@@ -48,7 +48,7 @@ const copyFilesWithStructure = (from, to, paths) => {
   paths.forEach(async path => {
     let toPath = join(to, path);
     const parent = dirname(toPath);
-    
+
     if (path) {
       const fromPath = join(from, path);
       logger.info(`Copying from ${fromPath} to ${toPath}`, process.cwd(), { from });
@@ -60,7 +60,7 @@ const copyFilesWithStructure = (from, to, paths) => {
         // TODO: Handle case where link has updated
         if (!isLink || !existsSync(toPath)) {
           if (isLink) {
-            execSync(`cp -Lf "${fromPath}" "${toPath}"`);     
+            execSync(`cp -Lf "${fromPath}" "${toPath}"`);
           } else  {
             mkdirp.sync(dirname(toPath));
             execSync(`cp -rf ${quotePath(fromPath)} "${toPath}"`);
@@ -71,7 +71,7 @@ const copyFilesWithStructure = (from, to, paths) => {
         process.exit(1);
       }
     }
-  });   
+  });
 };
 
 /**

@@ -23,10 +23,11 @@ const handleBackupMapping = (mapping, from, to) => {
   }
   if ('filter' in mapping) {
     copyAll = false;
-    logger.info(`Processing mappings filter from ${from} to ${to}`);
+    const filterFrom = quotePath(join(from, mapping.filter));
+    logger.info(`Processing mappings filter from ${filterFrom} to ${to}`);
     try {
-      execSync(`mkdir -p ${to}`);
-      execSync(`cp -rf ${quotePath(join(from, mapping.filter))} "${to}"`);
+      mkdir(to);
+      execSync(`cp -rf ${filterFrom} "${to}"`);
     } catch (error) {
       logger.error(`Failed to copy filtered files from ${from} to ${to}`, { error });
       process.exit(1);
@@ -73,10 +74,13 @@ const buildFindCommand = config => {
 
 const backupAppConfig = (config, destination) => {
   const from = fixPath(config.from);
+  logger.trace(`Backing up app config from ${from}`);
   chdir(from);
-  const remotes = execSync('git remote -v');
-  console.log(remotes);
   const to = join(destination, config.to);
+  if (existsSync('.git')) {
+    const remotes = execSync('git remote -v');
+    writeFileSync(`${to}/remotes.txt`, remotes.join('\n'));
+  }
   const findCommand = buildFindCommand(config);
   logger.trace(`Find command is: ${findCommand}`);
   const paths = execSync(findCommand, { encoding: 'utf-8' }).split('\n');
