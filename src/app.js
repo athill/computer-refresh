@@ -77,15 +77,29 @@ const backupAppConfig = (config, destination) => {
   logger.trace(`Backing up app config from ${from}`);
   chdir(from);
   const to = join(destination, config.to);
-  if (existsSync('.git')) {
-    const remotes = execSync('git remote -v');
-    writeFileSync(`${to}/remotes.txt`, remotes.join('\n'));
-  }
+  // if (existsSync('.git')) {
+  //   const remotes = execSync('git remote -v');
+  //   writeFileSync(`${to}/remotes.txt`, remotes.join('\n'));
+  // }
   const findCommand = buildFindCommand(config);
   logger.trace(`Find command is: ${findCommand}`);
   const paths = execSync(findCommand, { encoding: 'utf-8' }).split('\n');
   logger.trace(`Paths are ${paths}`);
   copyFilesWithStructure(from, to, paths);
+  const gitPaths = execSync('find . -name .git', { encoding: 'utf-8' }).split('\n').map(path => path.replace('.git', ''));
+  logger.trace('gitPaths: ', gitPaths);
+  gitPaths.forEach(path => {
+    if (path) {
+      logger.trace('Adding remotes: ', path);
+      const remotes = execSync(`git -C ${path} remote -v`, { encoding: 'utf-8' });
+      if (remotes) {
+        mkdir(`${to}/${path}`);
+        writeFileSync(`${to}/${path}/remotes.txt`, remotes);
+      }
+    }
+  });
+
+
 };
 
 const backupListings = async (listings, destination) => {
