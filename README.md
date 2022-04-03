@@ -82,6 +82,8 @@ In this example, I'm backing up secure files to my desktop and non-secure (commo
 
 `destination` is the root directory to back up files (will be created if it does not exist).
 
+Symbolic links encountered are documented in `<destination>/links.sh`
+
 `listings` dumps a top-level directory list into `<label>.txt`, so in the example, `applications.txt` would contain a listing of the `/Applications` directory. 
 
 `mappings` works as follows:
