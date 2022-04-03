@@ -1,14 +1,19 @@
-const { execSync } = require('child_process');
-const { existsSync, lstatSync, mkdirSync } = require('fs');
-const { basename, dirname, join } = require('path');
-const mkdirp = require('mkdirp');
 const isGlob = require('is-glob');
-const { readFileSync } = require('fs');
+const { appendFileSync, copyFileSync, existsSync, lstatSync, readdirSync, readFileSync, readlinkSync } = require('fs');
 const yaml = require('js-yaml');
+const mkdirp = require('mkdirp');
+const homedir = require('os').homedir();
+const { basename, dirname, join } = require('path');
 
 const logger = require('./logger');
 
-const homedir = require('os').homedir();
+const linkFile = 'links.sh';
+
+let destination;
+
+const setDestination = (dest) => destination = dest;
+
+const getDestination = () => destination;
 
 /**
  * Synchronously creates a nested directory
@@ -39,37 +44,62 @@ const chdir = directory => {
   }
 };
 
+const handleSymbolicLink = (fromPath, toPath) => {
+  const linkDest = readlinkSync(fromPath);
+  logger.info(`${fromPath} is a symbolic link to ${linkDest}`);
+  appendFileSync(join(getDestination(), linkFile), `cd ${dirname(fromPath)}; ln -s ${linkDest} ${fromPath}\n`);
+}
+
+const handleCopyFile = (fromPath, toPath) => {
+  try {
+    if (!existsSync(dirname(toPath))) {
+      mkdir(dirname(toPath));
+    }
+    copyFileSync(fromPath, toPath);
+  } catch (error) {
+    logger.error(error);
+  }
+};
+
+const copyRecursive = async (from, to) => {
+  logger.trace(`copying reecursively from ${from} to ${to}`);
+  mkdir(to);
+  const files = readdirSync(from);
+  files.forEach(async file => {
+    const fromPath = join(from, file);
+    const toPath = join(to, file);
+    const stats = lstatSync(fromPath);
+    if (stats.isSymbolicLink()) {
+      handleSymbolicLink(fromPath, toPath);
+    } else if (stats.isDirectory()) {
+      if (!existsSync(toPath)) {
+        mkdir(toPath);
+      }
+      await copyRecursive(fromPath, toPath);
+    } else {
+      handleCopyFile(fromPath, toPath);
+    }
+  });
+};
+
 /**
  * Copies a list of paths from one directory to another, retaining relevant the directory structure
  */
-const copyFilesWithStructure = (from, to, paths) => {
-  logger.trace(`Starting directory: ${process.cwd()}`);
-
+const copyFilesWithStructure = async (from, to, paths) => {
+  logger.trace(`Starting directory: ${process.cwd()}`, paths);
   paths.forEach(async path => {
-    let toPath = join(to, path);
-    const parent = dirname(toPath);
-
-    if (path) {
-      const fromPath = join(from, path);
-      logger.info(`Copying from ${fromPath} to ${toPath}`, process.cwd(), { from });
-      const stats = lstatSync(fromPath);
-      const isLink = stats.isSymbolicLink();
-      try {
-        // If it's a link, only copy if it doesn't already exist in the destination due to issues overwriting an existing link
-        // Otherwise, copy it.
-        // TODO: Handle case where link has updated
-        if (!isLink || !existsSync(toPath)) {
-          if (isLink) {
-            execSync(`cp -Lf "${fromPath}" "${toPath}"`);
-          } else  {
-            mkdirp.sync(dirname(toPath));
-            execSync(`cp -rf ${quotePath(fromPath)} "${toPath}"`);
-          }
-        }
-      } catch (error) {
-        logger.error(`Failed to copy ${fromPath} to ${toPath}`, error);
-        process.exit(1);
-      }
+    if (!path) {
+      return;
+    }
+    const fromPath = join(from, path);
+    const toPath = join(to, path);
+    const stats = lstatSync(fromPath);
+    if (stats.isSymbolicLink()) {
+      handleSymbolicLink(fromPath, toPath);
+    } else if (stats.isDirectory()) {
+      await copyRecursive(fromPath, toPath);
+    } else {
+      handleCopyFile(fromPath, toPath);
     }
   });
 };
@@ -91,8 +121,10 @@ const loadYaml = yamlFile => {
 module.exports = {
   chdir,
   fixPath,
+  linkFile,
   loadYaml,
   mkdir,
   quotePath,
+  setDestination,
   copyFilesWithStructure
 };

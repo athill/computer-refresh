@@ -1,20 +1,20 @@
 const chalk = require('chalk');
 const { execSync } = require('child_process');
-const { existsSync, readdirSync, writeFileSync } = require('fs');
+const { readdirSync, writeFileSync, existsSync, unlinkSync } = require('fs');
 const { join } = require('path');
 
 const logger = require('./logger');
-const { chdir, copyFilesWithStructure, fixPath, mkdir, quotePath } = require('./utils');
+const { chdir, copyFilesWithStructure, fixPath, linkFile, mkdir, quotePath, setDestination } = require('./utils');
 
 const output = text => console.log(chalk.cyan(text));
 
-const handleBackupMapping = (mapping, from, to) => {
+const handleBackupMapping = async (mapping, from, to) => {
   let copyAll = true;
   if ('files' in mapping) {
     copyAll = false;
     logger.info(`Processing mappings files from ${from} to ${to}`);
     try {
-      copyFilesWithStructure(from, to, mapping.files);
+      await copyFilesWithStructure(from, to, mapping.files);
     } catch (error) {
       logger.error(`Failed to copy listed files from ${from} to ${to}`, { files: mapping.files, error });
       process.exit(1);
@@ -77,17 +77,16 @@ const backupAppConfig = (config, destination) => {
   logger.trace(`Backing up app config from ${from}`);
   chdir(from);
   const to = join(destination, config.to);
-  // if (existsSync('.git')) {
-  //   const remotes = execSync('git remote -v');
-  //   writeFileSync(`${to}/remotes.txt`, remotes.join('\n'));
-  // }
+  if (existsSync('.git')) {
+    const remotes = execSync('git remote -v');
+    writeFileSync(`${to}/remotes.txt`, remotes.join('\n'));
+  }
   const findCommand = buildFindCommand(config);
   logger.trace(`Find command is: ${findCommand}`);
   const paths = execSync(findCommand, { encoding: 'utf-8' }).split('\n');
   logger.trace(`Paths are ${paths}`);
   copyFilesWithStructure(from, to, paths);
   const gitPaths = execSync('find . -name .git', { encoding: 'utf-8' }).split('\n').map(path => path.replace('.git', ''));
-  logger.trace('gitPaths: ', gitPaths);
   gitPaths.forEach(path => {
     if (path) {
       logger.trace('Adding remotes: ', path);
@@ -103,7 +102,7 @@ const backupAppConfig = (config, destination) => {
 };
 
 const backupListings = async (listings, destination) => {
-  logger.info('Write out listings', {listings, destination});
+  logger.info('Write out listings');
   Object.keys(listings).forEach(label => {
     const directory = listings[label];
     logger.trace(`Writing listing of ${directory} to ${label}.txt`);
@@ -112,8 +111,13 @@ const backupListings = async (listings, destination) => {
   })
 };
 
-const backupLabel = (config, options) => {
+const backupLabel = async (config, options) => {
   const destination = fixPath(config.destination);
+  setDestination(destination);
+  mkdir(destination);
+  if (existsSync(join(destination, linkFile))) {
+    unlinkSync(join(destination, linkFile));
+  }
   if ('app-config' in config && (options.appConfig || options.all)) {
     output('Processing app-config');
     backupAppConfig(config['app-config'], destination);
@@ -122,12 +126,15 @@ const backupLabel = (config, options) => {
     output('Processing listings');
     backupListings(config.listings, destination);
   }
-  if (config.mappings && options.mappings || options.all) {
+  if (config.mappings && (options.mappings || options.all)) {
     output('Processing mappings');
     config.mappings.forEach(async mapping => {
       const from = fixPath(mapping.from);
       const to = join(destination, mapping.to);
-      handleBackupMapping(mapping, from, to);
+      if (!existsSync(to)) {
+        mkdir(to);
+      }
+      await handleBackupMapping(mapping, from, to);
     });
   }
 };
@@ -151,9 +158,9 @@ const backup = async (config, options) => {
   if (options.verbose) {
     logger.level = 'trace';
   }
-  labels.forEach(label => {
+  labels.forEach(async label => {
     output(`** Backing up [${label}]`);
-    backupLabel(config[label], options);
+    await backupLabel(config[label], options);
   });
 };
 
@@ -171,7 +178,7 @@ const restore = async (config, options) => {
       conf.mappings.forEach(async mapping => {
         const to = fixPath(mapping.from);
         const from = join(destination, mapping.to);
-        handleBackupMapping(mapping, from, to);
+        await handleBackupMapping(mapping, from, to);
       });
     }
   });
