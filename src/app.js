@@ -10,17 +10,18 @@ const output = text => console.log(chalk.cyan(text));
 
 const handleBackupMapping = async (mapping, from, to) => {
   let copyAll = true;
-  if ('files' in mapping) {
+  // Copy specific paths
+  if ('paths' in mapping) {
     copyAll = false;
-    logger.info(`Processing mappings files from ${from} to ${to}`);
+    logger.info(`Processing mappings paths from ${from} to ${to}`);
     try {
-      await copyFilesWithStructure(from, to, mapping.files);
+      await copyFilesWithStructure(from, to, mapping.paths);
     } catch (error) {
-      logger.error(`Failed to copy listed files from ${from} to ${to}`, { files: mapping.files, error });
+      logger.error(`Failed to copy listed files from ${from} to ${to}`, { files: mapping.paths, error });
       process.exit(1);
     }
-
   }
+  // Copy files from the directory with a filter applied
   if ('filter' in mapping) {
     copyAll = false;
     const filterFrom = quotePath(join(from, mapping.filter));
@@ -86,6 +87,7 @@ const backupAppConfig = (config, destination) => {
   const paths = execSync(findCommand, { encoding: 'utf-8' }).split('\n');
   logger.trace(`Paths are ${paths}`);
   copyFilesWithStructure(from, to, paths);
+  // Handle git remotes separately
   const gitPaths = execSync('find . -name .git', { encoding: 'utf-8' }).split('\n').map(path => path.replace('.git', ''));
   gitPaths.forEach(path => {
     if (path) {
@@ -97,8 +99,6 @@ const backupAppConfig = (config, destination) => {
       }
     }
   });
-
-
 };
 
 const backupListings = async (listings, destination) => {
@@ -111,13 +111,15 @@ const backupListings = async (listings, destination) => {
   })
 };
 
-const backupLabel = async (config, options) => {
+const backupConfiguration = async (config, options) => {
   const destination = fixPath(config.destination);
   setDestination(destination);
+  logger.info(`Backing up to destination: ${destination}`);
   mkdir(destination);
-  if (existsSync(join(destination, linkFile))) {
-    unlinkSync(join(destination, linkFile));
-  }
+  // Not sure what was intended here
+  // if (existsSync(join(destination, linkFile))) {
+  //   unlinkSync(join(destination, linkFile));
+  // }
   if ('app-config' in config && (options.appConfig || options.all)) {
     output('Processing app-config');
     backupAppConfig(config['app-config'], destination);
@@ -125,6 +127,15 @@ const backupLabel = async (config, options) => {
   if (config.listings && (options.listings || options.all)) {
     output('Processing listings');
     backupListings(config.listings, destination);
+  }
+  if (config.commands) {
+    output('Processing commands');
+    Object.keys(config.commands).forEach(command => {
+      const cmd = config.commands[command];
+      logger.trace(`Executing command: ${cmd}`);
+      const result = execSync(cmd, { encoding: 'utf-8' });
+      writeFileSync(join(destination, `${command}.txt`), result);
+    });
   }
   if (config.mappings && (options.mappings || options.all)) {
     output('Processing mappings');
@@ -139,7 +150,7 @@ const backupLabel = async (config, options) => {
   }
 };
 
-const getLabels = (config, options) => {
+const getConfigurationLabels = (config, options) => {
   let labels = Object.keys(config);
   if (options.labels) {
     labels = options.labels.split(',');
@@ -154,18 +165,18 @@ const getLabels = (config, options) => {
 };
 
 const backup = async (config, options) => {
-  const labels = getLabels(config, options);
+  const labels = getConfigurationLabels(config, options);
   if (options.verbose) {
     logger.level = 'trace';
   }
   labels.forEach(async label => {
     output(`** Backing up [${label}]`);
-    await backupLabel(config[label], options);
+    await backupConfiguration(config[label], options);
   });
 };
 
 const restore = async (config, options) => {
-  const labels = getLabels(config, options);
+  const labels = getConfigurationLabels(config, options);
   if (options.verbose) {
     logger.level = 'trace';
   }

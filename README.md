@@ -44,12 +44,16 @@ Both commands can take a `--verbose|-v` argument to provide more output
 
 Some example configuration will probably help
 
-```
+```yaml
+# common is a backup configuration
 common:
+  # Everything will be copies/output here
   destination: ~/cloud-provider/computer-refresh
+  # Write directory lists to file. Can be helpful in auditing installed applications, etc.
   listings:
     applications: /Applications
     code: ~/Code  
+  # Copy entire directories or limit by name
   mappings:
     - from: ~
       to: home
@@ -58,6 +62,7 @@ common:
         // ...
     - from: ~/Documents/recipes
       to: recipes
+# secure is another backup configuration      
 secure:
   destination: ~/secure-computer-refresh
   mappings:
@@ -65,6 +70,7 @@ secure:
       to: home/.m2
       pattern: '*.xml'      
     // ...
+  # This will recursively go through the directory and only copy designated files, maintaining the directory structure  
   app-config: 
     from: ~/Code
     to: app-config

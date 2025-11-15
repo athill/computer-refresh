@@ -92,6 +92,10 @@ const copyFilesWithStructure = async (from, to, paths) => {
       return;
     }
     const fromPath = join(from, path);
+    if (!existsSync(fromPath)) {
+      logger.error(`Source path does not exist: ${fromPath}`);
+      return;
+    }
     const toPath = join(to, path);
     const stats = lstatSync(fromPath);
     if (stats.isSymbolicLink()) {
